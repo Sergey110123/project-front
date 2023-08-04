@@ -6,6 +6,462 @@
 </head>
 <body>
 <h1>RPG admin panel</h1>
+<h2>Accounts list:</h2>
+<br><b>Counts per page:</b>
+
+<select id="countPagesSelection" class="select-css">
+    <option value=3 selected="selected">3</option>
+    <option value=4>4</option>
+    <option value=5>5</option>
+    <option value=6>6</option>
+    <option value=7>7</option>
+    <option value=8>8</option>
+    <option value=9>9</option>
+    <option value=10>10</option>
+    <option value=11>11</option>
+    <option value=12>12</option>
+    <option value=13>13</option>
+    <option value=14>14</option>
+    <option value=15>15</option>
+    <option value=16>16</option>
+    <option value=17>17</option>
+    <option value=18>18</option>
+    <option value=19>19</option>
+    <option value=20>20</option>
+</select>
+
+<table id="table1" class="table">
+    <thead>
+        <tr>
+            <th>#</th><th>Name</th><th>Title</th><th>Race</th><th>Profession</th><th>Level</th><th>Birthday</th><th>Banned</th><th>Edit</th><th>Delete</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+<div id="pages"></div>
+<p></p>
+<hr>
+<h2>Create new account:</h2>
+<table id="createTable" class="table1">
+    <tbody>
+    <tr>
+        <td>Name:</td>
+        <td><input id="nameCreate" type="text" maxlength="12"></td>
+        <td><span id="nameNotice" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Title:</td>
+        <td><input id="titleCreate" type="text" maxlength="30"></td>
+        <td><span id="titleNotice" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Race:</td>
+        <td>
+            <select id="raceCreate" class="select-css">
+                <option selected="selected" value="HUMAN">HUMAN</option>
+                <option value="DWARF">DWARF</option>
+                <option value="ELF">ELF</option>
+                <option value="GIANT">GIANT</option>
+                <option value="ORC">ORC</option>
+                <option value="TROLL">TROLL</option>
+                <option value="HOBBIT">HOBBIT</option>
+            </select>
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Profession:</td>
+        <td>
+            <select id="professionCreate" class="select-css">
+                <option selected="selected" value="WARRIOR">WARRIOR</option>
+                <option value="ROGUE">ROGUE</option>
+                <option value="SORCERER">SORCERER</option>
+                <option value="CLERIC">CLERIC</option>
+                <option value="PALADIN">PALADIN</option>
+                <option value="NAZGUL">NAZGUL</option>
+                <option value="WARLOCK">WARLOCK</option>
+                <option value="DRUID">DRUID</option>
+            </select>
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td>Level:</td>
+        <td><input id="levelCreate" type="number" min="0" max="100"></td>
+        <td><span id="levelNotice" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Birthday:</td>
+        <td><input id="birthdayCreate" type="date"></td>
+        <td><span id="birthdayNotice" style="color: red"></span></td>
+    </tr>
+    <tr>
+        <td>Banned:</td>
+        <td>
+            <select id="bannedCreate" class="select-css">
+                <option selected="selected" value="false">false</option>
+                <option value="true">true</option>
+            </select>
+        </td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>
+            <a id="button" href="#createTable" class="botr" onclick="createPlayer()">Save</a>
+        </td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+
+<script>
+    let accounts = 0;
+    let pages;
+    let pagesCountSelection = 3;
+    let selectRef = document.getElementById('countPagesSelection');
+    let pagesRef = document.getElementById('pages');
+    let pageNumber = 1;
+    let pageNumberForGet = pageNumber - 1;
+    let listPlayers = [];
+    const headers = {
+        0: "id",
+        1: "name",
+        2: "title",
+        3: "race",
+        4: "profession",
+        5: "level",
+        6: "birthday",
+        7: "banned"
+    };
+    const races = ["HUMAN", "DWARF", "ELF", "GIANT", "ORC", "TROLL", "HOBBIT"];
+    const professions = ["WARRIOR", "ROGUE", "SORCERER", "CLERIC", "PALADIN", "NAZGUL", "WARLOCK", "DRUID"];
+    const bans = ["false", "true"];
+
+    $.ajax({
+        url: '/rest/players/count',
+        method: 'get',
+        dataType: 'html',
+        success: function (data) {
+            accounts = Number(data);
+            changeOption();
+        }
+    });
+
+    function createPlayer(){
+        let createName = document.getElementById('nameCreate').value;
+        let emptyNameRef = document.getElementById('nameNotice');
+        emptyNameRef.innerHTML = "";
+        let nameCheck = true;
+
+        let createTitle = document.getElementById('titleCreate').value;
+        let emptyTitleRef = document.getElementById('titleNotice');
+        emptyTitleRef.innerHTML = "";
+        let titleCheck = true;
+
+        let createRace = document.getElementById('raceCreate').value;
+        let createProfession = document.getElementById('professionCreate').value;
+
+        let createLevel = document.getElementById('levelCreate').value;
+        let emptyLevelRef = document.getElementById('levelNotice');
+        emptyLevelRef.innerHTML = "";
+        let levelCheck = true;
+
+        let createBirthday = new Date(document.getElementById('birthdayCreate').value);
+        let milliseconds = createBirthday.getTime();
+        let emptyBirthdayRef = document.getElementById('birthdayNotice');
+        emptyBirthdayRef.innerHTML = "";
+        let birthdayCheck = true;
+
+        let createBanned = document.getElementById('bannedCreate').value;
+        if (createName == "" || createName == null) {
+            let nameIsEmpty = document.createTextNode('Enter character name!');
+            emptyNameRef.append(nameIsEmpty);
+            nameCheck = false;
+        }
+        if (createTitle == "" || createTitle == null) {
+            let titleIsEmpty = document.createTextNode('Enter character title!');
+            emptyTitleRef.append(titleIsEmpty);
+            titleCheck = false;
+        }
+        if (createLevel == "" || createLevel == null) {
+            let levelIsEmpty = document.createTextNode('Enter character level!');
+            emptyLevelRef.append(levelIsEmpty);
+            levelCheck = false;
+        }
+        if (createLevel < 0 || createLevel > 100) {
+            let levelIsInvalid = document.createTextNode('Character level can be from 0 to 100!');
+            emptyLevelRef.append(levelIsInvalid);
+            levelCheck = false;
+        }
+        if (!milliseconds || milliseconds < 0) {
+            let birthdayIsEmpty = document.createTextNode('Enter birthday!');
+            emptyBirthdayRef.append(birthdayIsEmpty);
+            birthdayCheck = false;
+        }
+        if (nameCheck && titleCheck && levelCheck && birthdayCheck) {
+            const userCreate = {
+                name: createName,
+                title: createTitle,
+                race: createRace,
+                profession: createProfession,
+                birthday: milliseconds,
+                banned: createBanned,
+                level: createLevel
+            }
+            let userCreateJson = JSON.stringify(userCreate);
+            document.getElementById('nameCreate').value = '';
+            document.getElementById('titleCreate').value = '';
+            document.getElementById('levelCreate').value = '';
+            document.getElementById('birthdayCreate').value = '';
+//            console.log(userCreateJson);
+
+            $.ajax({
+                url: '/rest/players/',
+                method: 'post',
+                dataType: 'json',
+                contentType: 'application/json;charset=UTF-8',
+                data: userCreateJson,
+                success: function () {
+                    accounts +=1;
+                    changeOption();
+                }
+            });
+        }
+    }
+    function savePlayer(){
+        let id = Number(this.id.slice(4));
+        let newName = document.getElementById('inputName' + id).value;
+        if (newName == "" || newName == null) {
+            newName = document.getElementById('inputName' + id).placeholder;
+        }
+        let newTitle = document.getElementById('inputTitle' + id).value;
+        if (newTitle == "" || newTitle == null) {
+            newTitle = document.getElementById('inputTitle' + id).placeholder;
+        }
+        let newRace = document.getElementById('inputRace' + id).value;
+        let newProfession = document.getElementById('inputProfession' + id).value;
+        let newBan = document.getElementById('inputBanned' + id).value;
+        const userUpdate = {
+            name: newName,
+            title: newTitle,
+            race: newRace,
+            profession: newProfession,
+            banned: newBan
+        }
+        let userJson = JSON.stringify(userUpdate);
+
+        $.ajax({
+            url: '/rest/players/' + id,
+            method: 'post',
+            dataType: 'json',
+            contentType: 'application/json;charset=UTF-8',
+            data: userJson,
+            success: function () {
+                changeOption();
+            }
+        });
+    }
+    function editPlayer(){
+        let id = Number(this.id.slice(4));
+        let idName = 'name' + id;
+        let idTitle = 'title' + id;
+        let idRace = 'race' + id;
+        let idProfession = 'profession' + id;
+        let idBanned = 'banned' + id;
+        let idDelete = 'delete' + id;
+        let deleteRef = document.getElementById(idDelete);
+        let editRef = document.getElementById(this.id);
+        deleteRef.src = "";
+        editRef.src = "/img/save.png";
+        editRef.onclick = savePlayer;
+        let nameRef = document.getElementById(idName);
+        let titleRef = document.getElementById(idTitle);
+        let raceRef = document.getElementById(idRace);
+        let professionRef = document.getElementById(idProfession);
+        let bannedRef = document.getElementById(idBanned);
+        let text = nameRef.innerHTML;
+
+        nameRef.innerHTML = "";
+        let inputName = document.createElement('input');
+        inputName.type = "text";
+        inputName.placeholder = text;
+        inputName.id = 'inputName' + id;
+        nameRef.append(inputName);
+
+        text = titleRef.innerHTML;
+        titleRef.innerHTML = "";
+        let titleName = document.createElement('input');
+        titleName.type = "text";
+        titleName.placeholder = text;
+        titleName.id = 'inputTitle' + id;
+        titleRef.append(titleName);
+
+        text = raceRef.innerHTML;
+        raceRef.innerHTML = "";
+        let raceName = document.createElement('select');
+
+        for (let i = 0; i < races.length; i++) {
+            let option = document.createElement('option');
+            option.value = races[i];
+            option.text = races[i];
+            raceName.append(option);
+        }
+        raceName.selectedIndex = races.indexOf(text);
+        raceName.id = 'inputRace' + id;
+        raceRef.append(raceName);
+
+        text = professionRef.innerHTML;
+        professionRef.innerHTML = "";
+        let professionName = document.createElement('select');
+        for (let i = 0; i < professions.length; i++) {
+            let option = document.createElement('option');
+            option.value = professions[i];
+            option.text = professions[i];
+            professionName.append(option);
+        }
+        professionName.selectedIndex = professions.indexOf(text);
+        professionName.id = 'inputProfession' + id;
+        professionRef.append(professionName);
+
+        text = bannedRef.innerHTML;
+        bannedRef.innerHTML = "";
+        let banned = document.createElement('select');
+        for (let i = 0; i < bans.length; i++) {
+            let option = document.createElement('option');
+            option.value = bans[i];
+            option.text = bans[i];
+            banned.append(option);
+        }
+        banned.selectedIndex = bans.indexOf(text);
+        banned.id = 'inputBanned' + id;
+        bannedRef.append(banned);
+
+    }
+
+    function deletePlayer(){
+        let id = Number(this.id.slice(6));
+
+        $.ajax({
+            url: '/rest/players/' + id,
+            method: 'delete',
+            dataType: 'html',
+            success: function (data) {
+                accounts -= 1;
+                changeOption();
+            }
+        });
+    }
+    function clickFunction() {
+        pageNumber = Number(this.id.slice(4));
+        pageNumberForGet = pageNumber - 1;
+
+        changeOption();
+
+    }
+    function changeOption() {
+        pagesCountSelection = Number(selectRef.options[selectRef.selectedIndex].value);
+
+        pages = Math.ceil(accounts / pagesCountSelection);
+        if (pages < pageNumber) {
+            pageNumber = 1;
+            pageNumberForGet = pageNumber - 1;
+        }
+
+        pagesRef.innerHTML = "";
+        const bold = document.createElement('b');
+        pagesRef.append(bold);
+        bold.append('Pages: ');
+        for (let i = 1; i <= pages; i++) {
+            let span = document.createElement('span');
+            span.style.color = 'black';
+            span.id = 'span' + i;
+            span.classList.remove('cursor');
+            if (i == pageNumber) {
+                span.style.color = 'red';
+            }
+            if( i != pageNumber) {
+                span.classList.add('cursor');
+                span.onclick = clickFunction;
+            }
+            span.append(document.createTextNode(i + ' '));
+
+            pagesRef.append(span);
+
+
+        }
+        listPlayers = [];
+        sendGetRequest();
+    }
+
+    selectRef.addEventListener("change", changeOption);
+
+
+    function sendGetRequest() {
+
+        $.ajax({
+            url: '/rest/players?pageNumber=' + pageNumberForGet + '&pageSize=' + pagesCountSelection,         /* Куда пойдет запрос */
+            method: 'get',             /* Метод передачи (post или get) */
+            dataType: 'html',          /* Тип данных в ответе (xml, json, script, html). */
+            // data: {text: 'Текст'},     /* Параметры передаваемые в запросе. */
+            success: function (data) {   /* функция которая будет выполнена после успешного запроса.  */
+
+                let str = data.slice(2, -2);
+                let array = str.split('},{');
+                for (let i = 0; i < array.length; i++) {
+                    array[i] = array[i].split(',');
+                }
+
+                for (let i = 0; i < array.length; i++) {
+                    let birthday = array[i][5];
+                    array[i][5] = array[i][7];
+                    array[i][7] = array[i][6];
+                    array[i][6] = birthday;
+                }
+                listPlayers = array;
+
+                let tbodyRef = document.getElementById('table1').getElementsByTagName('tbody')[0];
+                tbodyRef.innerHTML = "";
+                for (let i = 0; i < array.length; i++) {
+                    let newRow = tbodyRef.insertRow();
+                    for (let j = 0; j < array[i].length; j++) {
+                        array[i][j] = array[i][j].slice(array[i][j].indexOf(':') + 1);
+                        if (j == 1 || j == 2 || j == 3 || j == 4) {
+                            array[i][j] = array[i][j].slice(1, -1);
+                        }
+                        if (j == 6) {
+                            let a = Number(array[i][j]);
+                            let date = new Date(a);
+                            let dateEdited = date.getMonth() + '/' + date.getDate() + '/' + date.getFullYear();
+                            array[i][j] = dateEdited;
+                        }
+                        let newCell = newRow.insertCell();
+                        let newText = document.createTextNode(array[i][j]);
+                        newCell.id = headers[j] + array[i][0];
+                        newCell.append(newText);
+                    }
+                    let newCell9 = newRow.insertCell();
+                    let img9 = document.createElement('img');
+                    img9.src = "/img/edit.png";
+                    img9.id = 'edit' + array[i][0];
+                    img9.classList.add('cursor');
+                    img9.onclick = editPlayer;
+                    newCell9.append(img9);
+                    let newCell10 = newRow.insertCell();
+                    let img10 = document.createElement('img');
+                    img10.src = "/img/delete.png";
+                    img10.id = 'delete' + array[i][0];
+                    img10.classList.add('cursor');
+                    img10.onclick = deletePlayer;
+                    newCell10.append(img10);
+
+                }
+            }
+        });
+
+    }
+
+</script>
 
 </body>
 </html>
