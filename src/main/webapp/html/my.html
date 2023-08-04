@@ -377,10 +377,10 @@
             span.style.color = 'black';
             span.id = 'span' + i;
             span.classList.remove('cursor');
-            if (i == pageNumber) {
+            if (i === pageNumber) {
                 span.style.color = 'red';
             }
-            if( i != pageNumber) {
+            if( i !== pageNumber) {
                 span.classList.add('cursor');
                 span.onclick = clickFunction;
             }
@@ -426,10 +426,10 @@
                     let newRow = tbodyRef.insertRow();
                     for (let j = 0; j < array[i].length; j++) {
                         array[i][j] = array[i][j].slice(array[i][j].indexOf(':') + 1);
-                        if (j == 1 || j == 2 || j == 3 || j == 4) {
+                        if (j === 1 || j === 2 || j === 3 || j === 4) {
                             array[i][j] = array[i][j].slice(1, -1);
                         }
-                        if (j == 6) {
+                        if (j === 6) {
                             let a = Number(array[i][j]);
                             let date = new Date(a);
                             let dateEdited = date.getMonth() + '/' + date.getDate() + '/' + date.getFullYear();
